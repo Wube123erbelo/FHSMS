@@ -1,0 +1,33 @@
+# Keeps the build context small and fast to upload - none of this is needed
+# to build any of the three Dockerfiles in this repo (API, telegram-bot,
+# frontend), and node_modules/bin/obj especially can be hundreds of MB.
+
+# .NET build output
+**/bin/
+**/obj/
+**/*.user
+
+# Frontend
+frontend/node_modules/
+frontend/dist/
+
+# Real .env files anywhere in the repo (never the app's actual secrets -
+# only .env.example files, which are safe templates, should ever be copied
+# into an image or committed to git).
+**/.env
+**/.env.local
+**/.env.*.local
+
+# Editor / OS
+.vs/
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# VCS
+.git/
+.gitignore
+
+# Docs (not needed inside any image)
+*.md

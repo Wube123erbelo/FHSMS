@@ -1,0 +1,49 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html, body, #root {
+    height: 100%;
+  }
+  body {
+    @apply bg-canvas text-ink-900 font-sans antialiased;
+  }
+  h1, h2, h3 {
+    @apply font-display;
+  }
+  :focus-visible {
+    outline: 2px solid theme("colors.evergreen.600");
+    outline-offset: 2px;
+  }
+}
+
+@layer components {
+  .card {
+    @apply bg-white rounded-lg border border-evergreen-100 shadow-card;
+  }
+  .btn-primary {
+    @apply inline-flex items-center justify-center gap-2 rounded-md bg-evergreen-700 px-4 py-2 text-sm font-medium text-white transition hover:bg-evergreen-600 disabled:opacity-50 disabled:cursor-not-allowed;
+  }
+  .btn-secondary {
+    @apply inline-flex items-center justify-center gap-2 rounded-md border border-evergreen-200 bg-white px-4 py-2 text-sm font-medium text-evergreen-700 transition hover:bg-evergreen-50;
+  }
+  .input {
+    @apply w-full rounded-md border border-ink-300/40 bg-white px-3 py-2 text-sm text-ink-900 placeholder:text-ink-300 focus:border-evergreen-400 focus:outline-none focus:ring-1 focus:ring-evergreen-400;
+  }
+  .label {
+    @apply mb-1 block text-xs font-medium uppercase tracking-wide text-ink-600;
+  }
+  .table-shell {
+    @apply w-full text-left text-sm;
+  }
+  .table-shell th {
+    @apply border-b border-evergreen-100 bg-evergreen-50/60 px-4 py-2 text-xs font-medium uppercase tracking-wide text-evergreen-700;
+  }
+  .table-shell td {
+    @apply border-b border-ink-900/5 px-4 py-3 text-ink-900;
+  }
+  .badge {
+    @apply inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium;
+  }
+}
