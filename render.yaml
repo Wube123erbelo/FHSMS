@@ -1,0 +1,107 @@
+# Render Blueprint for FHSMS - deploys the API and frontend.
+# https://dashboard.render.com/blueprints
+#
+# Database: Supabase PostgreSQL (not Render's own managed Postgres).
+#   Set DATABASE_URL in the Render dashboard to your Supabase connection
+#   string (Project Settings -> Database -> Connection string -> URI).
+#   Program.cs auto-converts postgres://user:pass@host:port/db into the
+#   Npgsql keyword=value form, so the Supabase URI works as-is.
+#
+# EF Core migrations:
+#   Program.cs calls Database.MigrateAsync() on startup - that APPLIES
+#   existing migrations, it does not generate the schema from scratch.
+#   Before your first deploy (and again after this round of changes -
+#   Product buying/selling price, PlatformCommission, FarmerInvoice, and the
+#   new Invoice fields), generate/refresh migrations locally against a
+#   reachable Postgres instance:
+#     dotnet ef migrations add InitialCreate \
+#       --project src/FHSMS.Infrastructure --startup-project src/FHSMS.API
+#   ...then commit the generated src/FHSMS.Infrastructure/Migrations/ folder.
+#   Without it, the API starts but the tables it needs are missing.
+#
+# Telegram bot: NOT included as a Render service here - deploy it
+# separately (e.g. a small VPS or another host with a persistent worker)
+# once you have a plan that supports a long-running background process.
+# It only needs Fhsms__ApiBaseUrl pointed at this API's public URL plus
+# Telegram__BotToken and a service-account login (see telegram-bot/README
+# if present, or telegram-bot/src/Config for the exact variable names).
+#
+# Secrets (fields marked `sync: false`): Render prompts you to fill these
+# in from the dashboard on first deploy - they are deliberately not stored
+# in this file.
+
+services:
+  # --- Backend API (Docker) -------------------------------------------
+  - type: web
+    name: fhsms-api
+    runtime: docker
+    dockerfilePath: ./Dockerfile
+    dockerContext: .
+    plan: free
+    region: oregon
+    healthCheckPath: /health
+    envVars:
+      - key: ASPNETCORE_ENVIRONMENT
+        value: Production
+
+      # Supabase PostgreSQL connection string (postgres://... URI) - set in
+      # the Render dashboard, not here.
+      - key: DATABASE_URL
+        sync: false
+
+      - key: Jwt__Secret
+        generateValue: true
+      - key: Jwt__Issuer
+        value: FHSMS.API
+      - key: Jwt__Audience
+        value: FHSMS.Clients
+      - key: Jwt__ExpiryMinutes
+        value: "480"
+
+      # Update these once you know your real onrender.com URLs (Render may
+      # assign different names than what's hardcoded here on first deploy).
+      - key: ALLOWED_ORIGINS
+        value: https://fhsms-frontend.onrender.com
+      - key: PaymentProviders__ApiPublicBaseUrl
+        value: https://fhsms-api.onrender.com
+      - key: PaymentProviders__FrontendPublicBaseUrl
+        value: https://fhsms-frontend.onrender.com
+
+      - key: PaymentProviders__BankTransfer__Secret
+        sync: false
+      # Telebirr's H5 Web Payment flow needs the full merchant packet from
+      # Ethio Telecom, not a single shared secret - see
+      # TelebirrPaymentProvider's class remarks for what each of these is
+      # and why the exact values must come from your own merchant onboarding.
+      - key: PaymentProviders__Telebirr__AppId
+        sync: false
+      - key: PaymentProviders__Telebirr__ShortCode
+        sync: false
+      - key: PaymentProviders__Telebirr__ReceiveName
+        sync: false
+      - key: PaymentProviders__Telebirr__MerchantPrivateKeyPem
+        sync: false
+      - key: PaymentProviders__Telebirr__TelebirrPublicKeyPem
+        sync: false
+      - key: PaymentProviders__Telebirr__PaymentBaseUrl
+        sync: false
+      - key: PaymentProviders__Chapa__Secret
+        sync: false
+      - key: PaymentProviders__CbeBirr__Secret
+        sync: false
+
+  # --- Frontend (static site) -----------------------------------------
+  - type: web
+    name: fhsms-frontend
+    runtime: static
+    plan: free
+    buildCommand: cd frontend && npm install && npm run build
+    staticPublishPath: ./frontend/dist
+    envVars:
+      - key: VITE_API_BASE_URL
+        value: https://fhsms-api.onrender.com/api
+    routes:
+      # React Router client-side routing.
+      - type: rewrite
+        source: /*
+        destination: /index.html
