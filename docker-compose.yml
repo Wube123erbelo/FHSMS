@@ -1,0 +1,20 @@
+# Spins up just the PostgreSQL database for local development.
+# Run: docker compose up -d
+# Then point src/FHSMS.API/appsettings.Development.json (or user-secrets) at it.
+version: "3.9"
+services:
+  postgres:
+    image: postgres:16
+    container_name: fhsms-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: fhsms
+      POSTGRES_USER: fhsms_user
+      POSTGRES_PASSWORD: change_me
+    ports:
+      - "5432:5432"
+    volumes:
+      - fhsms_pgdata:/var/lib/postgresql/data
+
+volumes:
+  fhsms_pgdata:
