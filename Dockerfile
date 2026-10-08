@@ -1,6 +1,7 @@
 # syntax=docker/dockerfile:1
 
 FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
+
 WORKDIR /src
 
 COPY src/FHSMS.Domain/FHSMS.Domain.csproj src/FHSMS.Domain/
