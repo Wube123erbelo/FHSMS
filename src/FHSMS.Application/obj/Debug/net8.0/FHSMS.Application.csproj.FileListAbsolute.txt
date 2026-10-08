@@ -1,0 +1,16 @@
+C:\Users\HP\3D Objects\FHSMS\src\FHSMS.Application\bin\Debug\net8.0\FHSMS.Application.deps.json
+C:\Users\HP\3D Objects\FHSMS\src\FHSMS.Application\bin\Debug\net8.0\FHSMS.Application.dll
+C:\Users\HP\3D Objects\FHSMS\src\FHSMS.Application\bin\Debug\net8.0\FHSMS.Application.pdb
+C:\Users\HP\3D Objects\FHSMS\src\FHSMS.Application\bin\Debug\net8.0\FHSMS.Domain.dll
+C:\Users\HP\3D Objects\FHSMS\src\FHSMS.Application\bin\Debug\net8.0\FHSMS.Domain.pdb
+C:\Users\HP\3D Objects\FHSMS\src\FHSMS.Application\obj\Debug\net8.0\FHSMS.Application.csproj.AssemblyReference.cache
+C:\Users\HP\3D Objects\FHSMS\src\FHSMS.Application\obj\Debug\net8.0\FHSMS.Application.GeneratedMSBuildEditorConfig.editorconfig
+C:\Users\HP\3D Objects\FHSMS\src\FHSMS.Application\obj\Debug\net8.0\FHSMS.Application.AssemblyInfoInputs.cache
+C:\Users\HP\3D Objects\FHSMS\src\FHSMS.Application\obj\Debug\net8.0\FHSMS.Application.AssemblyInfo.cs
+C:\Users\HP\3D Objects\FHSMS\src\FHSMS.Application\obj\Debug\net8.0\FHSMS.Application.csproj.CoreCompileInputs.cache
+C:\Users\HP\3D Objects\FHSMS\src\FHSMS.Application\obj\Debug\net8.0\FHSMS.Application.sourcelink.json
+C:\Users\HP\3D Objects\FHSMS\src\FHSMS.Application\obj\Debug\net8.0\FHSMS.Ap.5504B4AE.Up2Date
+C:\Users\HP\3D Objects\FHSMS\src\FHSMS.Application\obj\Debug\net8.0\FHSMS.Application.dll
+C:\Users\HP\3D Objects\FHSMS\src\FHSMS.Application\obj\Debug\net8.0\refint\FHSMS.Application.dll
+C:\Users\HP\3D Objects\FHSMS\src\FHSMS.Application\obj\Debug\net8.0\FHSMS.Application.pdb
+C:\Users\HP\3D Objects\FHSMS\src\FHSMS.Application\obj\Debug\net8.0\ref\FHSMS.Application.dll
