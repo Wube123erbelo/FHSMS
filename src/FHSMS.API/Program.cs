@@ -7,50 +7,80 @@ using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.OpenApi.Models;
+using Npgsql;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// --- Render / container hosting -------------------------------------------
-// Render (and most container platforms) inject a PORT env var and expect the
-// app to bind to it - Kestrel's own default (5000/5001 from launchSettings)
-// is only used for local `dotnet run`. Only overrides when PORT is actually
-// set, so local dev and `docker run -p` with an explicit ASPNETCORE_URLS are
-// both unaffected.
-var renderPort = Environment.GetEnvironmentVariable("PORT");
-if (!string.IsNullOrWhiteSpace(renderPort))
-{
-    builder.WebHost.UseUrls($"http://0.0.0.0:{renderPort}");
-}
+// ============================================================
+// SERVER / PORT CONFIGURATION
+// ============================================================
+// AletCloud provides PORT at runtime.
+// Default to 8080 if PORT is not provided.
+//
+// IMPORTANT:
+// 0.0.0.0 makes the API reachable from outside the container.
+// ============================================================
 
-// Render's managed Postgres exposes its connection info as a single
-// postgres://user:pass@host:port/db URI (env var commonly named DATABASE_URL
-// or whatever you name it in render.yaml) - Npgsql needs the ADO.NET
-// keyword=value form instead, so translate it here when present. Local dev
-// and any other host that already sets ConnectionStrings__DefaultConnection
-// directly are unaffected (that value wins whenever this env var is absent).
+var port = Environment.GetEnvironmentVariable("PORT") ?? "8080";
+
+builder.WebHost.UseUrls($"http://0.0.0.0:{port}");
+
+
+// ============================================================
+// DATABASE CONFIGURATION
+// ============================================================
+// Supports DATABASE_URL such as:
+//
+// postgres://user:password@host:5432/database
+//
+// and converts it to an Npgsql connection string.
+// ============================================================
+
 var databaseUrl = Environment.GetEnvironmentVariable("DATABASE_URL");
+
 if (!string.IsNullOrWhiteSpace(databaseUrl))
 {
-    builder.Configuration["ConnectionStrings:DefaultConnection"] = ConvertPostgresUrlToNpgsqlConnectionString(databaseUrl);
+    try
+    {
+        builder.Configuration["ConnectionStrings:DefaultConnection"] =
+            ConvertPostgresUrlToNpgsqlConnectionString(databaseUrl);
+    }
+    catch (Exception ex)
+    {
+        Console.WriteLine($"DATABASE_URL could not be parsed: {ex.Message}");
+        throw;
+    }
 }
 
-// --- Services ------------------------------------------------------------
-// Every enum in this API (UserRole, TaxType, PaymentMethod, OrderSourceType,
-// TaxProfileType, AgentType, ...) is sent/received as its string name from the
-// frontend (e.g. "HotelAgent", not 2). System.Text.Json defaults to NUMERIC
-// enum serialization unless told otherwise, which silently fails model
-// binding (400 Bad Request) for every request carrying a string enum value.
-// This converter must be registered globally, not per-DTO, so no future
-// enum anywhere in the API can hit this trap again.
-builder.Services.AddControllers()
+
+// ============================================================
+// CONTROLLERS / JSON
+// ============================================================
+
+builder.Services
+    .AddControllers()
     .AddJsonOptions(options =>
     {
-        options.JsonSerializerOptions.Converters.Add(new System.Text.Json.Serialization.JsonStringEnumConverter());
+        options.JsonSerializerOptions.Converters.Add(
+            new System.Text.Json.Serialization.JsonStringEnumConverter()
+        );
     });
+
+
+// ============================================================
+// SWAGGER
+// ============================================================
+
 builder.Services.AddEndpointsApiExplorer();
+
 builder.Services.AddSwaggerGen(c =>
 {
-    c.SwaggerDoc("v1", new OpenApiInfo { Title = "FHSMS API", Version = "v1" });
+    c.SwaggerDoc("v1", new OpenApiInfo
+    {
+        Title = "FHSMS API",
+        Version = "v1",
+        Description = "FHSMS Backend API"
+    });
 
     c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
     {
@@ -61,139 +91,359 @@ builder.Services.AddSwaggerGen(c =>
         In = ParameterLocation.Header,
         Description = "Enter a valid JWT token."
     });
+
     c.AddSecurityRequirement(new OpenApiSecurityRequirement
     {
         {
             new OpenApiSecurityScheme
             {
-                Reference = new OpenApiReference { Type = ReferenceType.SecurityScheme, Id = "Bearer" }
+                Reference = new OpenApiReference
+                {
+                    Type = ReferenceType.SecurityScheme,
+                    Id = "Bearer"
+                }
             },
             Array.Empty<string>()
         }
     });
 });
 
+
+// ============================================================
+// CORS
+// ============================================================
+
 builder.Services.AddCors(options =>
 {
-    // A comma-separated ALLOWED_ORIGINS env var (or Cors:AllowedOrigins in
-    // appsettings) locks CORS down to your real frontend domain(s) in
-    // production. Left unset, falls back to AllowAnyOrigin so local dev and
-    // first deploys aren't blocked before you know the final frontend URL.
-    var allowedOrigins = (Environment.GetEnvironmentVariable("ALLOWED_ORIGINS")
-            ?? builder.Configuration["Cors:AllowedOrigins"])
-        ?.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+    var allowedOrigins =
+        Environment.GetEnvironmentVariable("ALLOWED_ORIGINS")
+        ?? builder.Configuration["Cors:AllowedOrigins"];
+
+    var origins = allowedOrigins?
+        .Split(
+            ',',
+            StringSplitOptions.RemoveEmptyEntries |
+            StringSplitOptions.TrimEntries
+        );
 
     options.AddPolicy("Default", policy =>
     {
-        if (allowedOrigins is { Length: > 0 })
-            policy.WithOrigins(allowedOrigins).AllowAnyHeader().AllowAnyMethod();
+        if (origins is { Length: > 0 })
+        {
+            policy
+                .WithOrigins(origins)
+                .AllowAnyHeader()
+                .AllowAnyMethod();
+        }
         else
-            policy.AllowAnyOrigin().AllowAnyHeader().AllowAnyMethod();
+        {
+            // Temporary fallback while the deployment is being configured.
+            policy
+                .AllowAnyOrigin()
+                .AllowAnyHeader()
+                .AllowAnyMethod();
+        }
     });
 });
 
-// Clean Architecture composition root: Application + Infrastructure register
-// everything they own, the API project just wires HTTP concerns on top.
+
+// ============================================================
+// APPLICATION / INFRASTRUCTURE
+// ============================================================
+
 builder.Services.AddApplication();
 builder.Services.AddInfrastructure(builder.Configuration);
 
+
+// ============================================================
+// BUILD APPLICATION
+// ============================================================
+
 var app = builder.Build();
 
-// --- Global exception handling --------------------------------------------
+
+// ============================================================
+// GLOBAL EXCEPTION HANDLER
+// ============================================================
+
 app.UseExceptionHandler(errorApp =>
 {
     errorApp.Run(async context =>
     {
-        var feature = context.Features.Get<IExceptionHandlerFeature>();
+        var feature =
+            context.Features.Get<IExceptionHandlerFeature>();
+
         var exception = feature?.Error;
 
         var (statusCode, payload) = exception switch
         {
-            ValidationException validationEx => (StatusCodes.Status400BadRequest, (object)validationEx.Errors),
-            NotFoundException notFoundEx => (StatusCodes.Status404NotFound, (object)new { message = notFoundEx.Message }),
-            UnauthorizedAccessException authEx => (StatusCodes.Status401Unauthorized, (object)new { message = authEx.Message }),
-            FHSMS.Domain.Exceptions.DomainException domainEx => (StatusCodes.Status400BadRequest, (object)new { message = domainEx.Message }),
-            _ => (StatusCodes.Status500InternalServerError, (object)new { message = "An unexpected error occurred." })
+            ValidationException validationEx =>
+                (
+                    StatusCodes.Status400BadRequest,
+                    (object)validationEx.Errors
+                ),
+
+            NotFoundException notFoundEx =>
+                (
+                    StatusCodes.Status404NotFound,
+                    (object)new
+                    {
+                        message = notFoundEx.Message
+                    }
+                ),
+
+            UnauthorizedAccessException authEx =>
+                (
+                    StatusCodes.Status401Unauthorized,
+                    (object)new
+                    {
+                        message = authEx.Message
+                    }
+                ),
+
+            FHSMS.Domain.Exceptions.DomainException domainEx =>
+                (
+                    StatusCodes.Status400BadRequest,
+                    (object)new
+                    {
+                        message = domainEx.Message
+                    }
+                ),
+
+            _ =>
+                (
+                    StatusCodes.Status500InternalServerError,
+                    (object)new
+                    {
+                        message = "An unexpected error occurred."
+                    }
+                )
         };
 
         context.Response.StatusCode = statusCode;
         context.Response.ContentType = "application/json";
+
         await context.Response.WriteAsJsonAsync(payload);
     });
 });
 
-if (app.Environment.IsDevelopment())
-{
-    app.UseSwagger();
-    app.UseSwaggerUI();
-}
+
+// ============================================================
+// SWAGGER
+// ============================================================
+// Enabled in production so we can test the deployed API.
+// ============================================================
+
+app.UseSwagger();
+
+app.UseSwaggerUI();
+
+
+// ============================================================
+// CORS
+// ============================================================
 
 app.UseCors("Default");
+
+
+// ============================================================
+// AUTHENTICATION / AUTHORIZATION
+// ============================================================
+
 app.UseAuthentication();
+
 app.UseAuthorization();
 
-// Presence tracking: on every authenticated request, stamp LastSeenAt with a
-// single UPDATE (ExecuteUpdateAsync - no entity load/tracking overhead, safe
-// to run on every request). This is what "online" actually means throughout
-// the app - recent activity, not just "logged in at some point today".
+
+// ============================================================
+// USER PRESENCE TRACKING
+// ============================================================
+
 app.Use(async (context, next) =>
 {
     if (context.User.Identity?.IsAuthenticated == true)
     {
-        var userIdClaim = context.User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+        var userIdClaim =
+            context.User.FindFirst(
+                System.Security.Claims.ClaimTypes.NameIdentifier
+            )?.Value;
+
         if (Guid.TryParse(userIdClaim, out var userId))
         {
-            using var scope = context.RequestServices.CreateScope();
-            var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
-            await db.Users.Where(u => u.Id == userId)
-                .ExecuteUpdateAsync(setters => setters.SetProperty(u => u.LastSeenAt, DateTime.UtcNow));
+            try
+            {
+                using var scope =
+                    context.RequestServices.CreateScope();
+
+                var db =
+                    scope.ServiceProvider
+                        .GetRequiredService<ApplicationDbContext>();
+
+                await db.Users
+                    .Where(u => u.Id == userId)
+                    .ExecuteUpdateAsync(
+                        setters => setters.SetProperty(
+                            u => u.LastSeenAt,
+                            DateTime.UtcNow
+                        )
+                    );
+            }
+            catch (Exception ex)
+            {
+                // Do not break an otherwise valid API request
+                // just because presence tracking failed.
+                Console.WriteLine(
+                    $"Presence tracking failed: {ex.Message}"
+                );
+            }
         }
     }
+
     await next();
 });
 
+
+// ============================================================
+// API CONTROLLERS
+// ============================================================
+
 app.MapControllers();
 
-// Render (and any platform doing zero-downtime deploys) polls this to know
-// when a new instance is actually ready for traffic - unauthenticated and
-// deliberately trivial, no DB round-trip, so it can't itself become a point
-// of failure.
-app.MapGet("/health", () => Results.Ok(new { status = "healthy" }));
 
-// --- Apply migrations + seed on startup (dev convenience) ------------------
-using (var scope = app.Services.CreateScope())
+// ============================================================
+// HEALTH CHECK
+// ============================================================
+// This endpoint does NOT require the database.
+// It lets us confirm that the container itself is alive.
+// ============================================================
+
+app.MapGet("/health", () =>
 {
-    var context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
-    await ApplicationDbContextSeeder.SeedAsync(context);
-}
+    return Results.Ok(new
+    {
+        status = "healthy",
+        service = "FHSMS API",
+        environment =
+            Environment.GetEnvironmentVariable(
+                "ASPNETCORE_ENVIRONMENT"
+            ) ?? "Production",
+        port = port
+    });
+});
+
+
+// ============================================================
+// ROOT ENDPOINT
+// ============================================================
+
+app.MapGet("/", () =>
+{
+    return Results.Ok(new
+    {
+        service = "FHSMS API",
+        status = "running",
+        health = "/health",
+        swagger = "/swagger"
+    });
+});
+
+
+// ============================================================
+// DATABASE SEEDING
+// ============================================================
+//
+// IMPORTANT:
+// We are intentionally NOT running the database seeder during
+// startup right now.
+//
+// First we need to prove that AletCloud can start the API.
+// Once /health works, we can safely configure migrations and
+// database seeding.
+//
+// ============================================================
+
+
+// ============================================================
+// START APPLICATION
+// ============================================================
+
+Console.WriteLine("==========================================");
+Console.WriteLine("FHSMS API starting...");
+Console.WriteLine($"Environment: {app.Environment.EnvironmentName}");
+Console.WriteLine($"Port: {port}");
+Console.WriteLine($"Listening on: http://0.0.0.0:{port}");
+Console.WriteLine("==========================================");
 
 app.Run();
 
-// Converts a postgres://user:pass@host:port/db?sslmode=require URI (Render's
-// connection-string format) into the semicolon key=value form Npgsql expects.
-// Render's Postgres requires SSL and doesn't present a CA Npgsql trusts by
-// default, so this also sets SSL Mode=Require;Trust Server Certificate=true
-// unless the URI already specifies sslmode itself.
+
+// ============================================================
+// POSTGRES URL CONVERTER
+// ============================================================
+
 static string ConvertPostgresUrlToNpgsqlConnectionString(string url)
 {
     var uri = new Uri(url);
+
     var userInfo = uri.UserInfo.Split(':', 2);
+
+    if (userInfo.Length == 0 || string.IsNullOrWhiteSpace(userInfo[0]))
+    {
+        throw new InvalidOperationException(
+            "DATABASE_URL does not contain a PostgreSQL username."
+        );
+    }
+
     var database = uri.AbsolutePath.TrimStart('/');
-    var query = Microsoft.AspNetCore.WebUtilities.QueryHelpers.ParseQuery(uri.Query);
-    var sslMode = query.TryGetValue("sslmode", out var sslModeValues) ? sslModeValues.ToString() : null;
 
-    var npgsqlBuilder = new Npgsql.NpgsqlConnectionStringBuilder
+    if (string.IsNullOrWhiteSpace(database))
     {
-        Host = uri.Host,
-        Port = uri.Port > 0 ? uri.Port : 5432,
-        Username = Uri.UnescapeDataString(userInfo[0]),
-        Password = userInfo.Length > 1 ? Uri.UnescapeDataString(userInfo[1]) : "",
-        Database = database
-    };
+        throw new InvalidOperationException(
+            "DATABASE_URL does not contain a database name."
+        );
+    }
 
-    if (string.IsNullOrEmpty(sslMode) || sslMode.Equals("require", StringComparison.OrdinalIgnoreCase))
+    var query =
+        Microsoft.AspNetCore.WebUtilities.QueryHelpers
+            .ParseQuery(uri.Query);
+
+    var sslMode =
+        query.TryGetValue("sslmode", out var sslModeValues)
+            ? sslModeValues.ToString()
+            : null;
+
+    var npgsqlBuilder =
+        new NpgsqlConnectionStringBuilder
+        {
+            Host = uri.Host,
+
+            Port = uri.Port > 0
+                ? uri.Port
+                : 5432,
+
+            Username =
+                Uri.UnescapeDataString(userInfo[0]),
+
+            Password =
+                userInfo.Length > 1
+                    ? Uri.UnescapeDataString(userInfo[1])
+                    : "",
+
+            Database =
+                Uri.UnescapeDataString(database),
+
+            Pooling = true
+        };
+
+    if (
+        string.IsNullOrEmpty(sslMode) ||
+        sslMode.Equals(
+            "require",
+            StringComparison.OrdinalIgnoreCase
+        )
+    )
     {
-        npgsqlBuilder.SslMode = Npgsql.SslMode.Require;
+        npgsqlBuilder.SslMode = SslMode.Require;
         npgsqlBuilder.TrustServerCertificate = true;
     }
 
