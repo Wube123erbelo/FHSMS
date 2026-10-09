@@ -1,0 +1,29 @@
+# Templated by the base nginx:alpine image's entrypoint (envsubst) into
+# /etc/nginx/conf.d/default.conf at container startup - ${PORT} becomes
+# whatever Render (or `docker run -e PORT=...`) actually set it to.
+server {
+    listen ${PORT};
+    server_name _;
+    root /usr/share/nginx/html;
+    index index.html;
+
+    # React Router uses client-side routing - a direct request or refresh on
+    # a route like /orders/123 has no matching file on disk, so fall back to
+    # index.html and let the client-side router take over. Without this,
+    # every route except "/" 404s on refresh.
+    location / {
+        try_files $uri $uri/ /index.html;
+    }
+
+    # Long-cache hashed build assets (Vite fingerprints these), but never the
+    # HTML shell itself - it must always be revalidated so users get new
+    # deploys instead of a stale cached index.html forever.
+    location /assets/ {
+        expires 1y;
+        add_header Cache-Control "public, immutable";
+    }
+
+    location = /index.html {
+        add_header Cache-Control "no-cache";
+    }
+}
