@@ -8,6 +8,10 @@ C:\Users\HP\3D Objects\FHSMS\src\FHSMS.Application\obj\Debug\net8.0\FHSMS.Applic
 C:\Users\HP\3D Objects\FHSMS\src\FHSMS.Application\obj\Debug\net8.0\FHSMS.Application.AssemblyInfoInputs.cache
 C:\Users\HP\3D Objects\FHSMS\src\FHSMS.Application\obj\Debug\net8.0\FHSMS.Application.AssemblyInfo.cs
 C:\Users\HP\3D Objects\FHSMS\src\FHSMS.Application\obj\Debug\net8.0\FHSMS.Application.csproj.CoreCompileInputs.cache
+<<<<<<< HEAD
+=======
+C:\Users\HP\3D Objects\FHSMS\src\FHSMS.Application\obj\Debug\net8.0\FHSMS.Application.sourcelink.json
+>>>>>>> 3782106b97382fbb9bf1c87d2faf6feacefc8f31
 C:\Users\HP\3D Objects\FHSMS\src\FHSMS.Application\obj\Debug\net8.0\FHSMS.Ap.5504B4AE.Up2Date
 C:\Users\HP\3D Objects\FHSMS\src\FHSMS.Application\obj\Debug\net8.0\FHSMS.Application.dll
 C:\Users\HP\3D Objects\FHSMS\src\FHSMS.Application\obj\Debug\net8.0\refint\FHSMS.Application.dll

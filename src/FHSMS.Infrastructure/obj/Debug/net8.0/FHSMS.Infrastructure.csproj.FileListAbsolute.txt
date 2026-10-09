@@ -11,6 +11,10 @@ C:\Users\HP\3D Objects\FHSMS\src\FHSMS.Infrastructure\obj\Debug\net8.0\FHSMS.Inf
 C:\Users\HP\3D Objects\FHSMS\src\FHSMS.Infrastructure\obj\Debug\net8.0\FHSMS.Infrastructure.AssemblyInfoInputs.cache
 C:\Users\HP\3D Objects\FHSMS\src\FHSMS.Infrastructure\obj\Debug\net8.0\FHSMS.Infrastructure.AssemblyInfo.cs
 C:\Users\HP\3D Objects\FHSMS\src\FHSMS.Infrastructure\obj\Debug\net8.0\FHSMS.Infrastructure.csproj.CoreCompileInputs.cache
+<<<<<<< HEAD
+=======
+C:\Users\HP\3D Objects\FHSMS\src\FHSMS.Infrastructure\obj\Debug\net8.0\FHSMS.Infrastructure.sourcelink.json
+>>>>>>> 3782106b97382fbb9bf1c87d2faf6feacefc8f31
 C:\Users\HP\3D Objects\FHSMS\src\FHSMS.Infrastructure\obj\Debug\net8.0\FHSMS.In.7DC118EA.Up2Date
 C:\Users\HP\3D Objects\FHSMS\src\FHSMS.Infrastructure\obj\Debug\net8.0\FHSMS.Infrastructure.dll
 C:\Users\HP\3D Objects\FHSMS\src\FHSMS.Infrastructure\obj\Debug\net8.0\refint\FHSMS.Infrastructure.dll

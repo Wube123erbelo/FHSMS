@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.OpenApi.Models;
+<<<<<<< HEAD
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -51,6 +52,82 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>
 {
     c.SwaggerDoc("v1", new OpenApiInfo { Title = "FHSMS API", Version = "v1" });
+=======
+using Npgsql;
+
+var builder = WebApplication.CreateBuilder(args);
+
+// ============================================================
+// SERVER / PORT CONFIGURATION
+// ============================================================
+// AletCloud provides PORT at runtime.
+// Default to 8080 if PORT is not provided.
+//
+// IMPORTANT:
+// 0.0.0.0 makes the API reachable from outside the container.
+// ============================================================
+
+var port = Environment.GetEnvironmentVariable("PORT") ?? "8080";
+
+builder.WebHost.UseUrls($"http://0.0.0.0:{port}");
+
+
+// ============================================================
+// DATABASE CONFIGURATION
+// ============================================================
+// Supports DATABASE_URL such as:
+//
+// postgres://user:password@host:5432/database
+//
+// and converts it to an Npgsql connection string.
+// ============================================================
+
+var databaseUrl = Environment.GetEnvironmentVariable("DATABASE_URL");
+
+if (!string.IsNullOrWhiteSpace(databaseUrl))
+{
+    try
+    {
+        builder.Configuration["ConnectionStrings:DefaultConnection"] =
+            ConvertPostgresUrlToNpgsqlConnectionString(databaseUrl);
+    }
+    catch (Exception ex)
+    {
+        Console.WriteLine($"DATABASE_URL could not be parsed: {ex.Message}");
+        throw;
+    }
+}
+
+
+// ============================================================
+// CONTROLLERS / JSON
+// ============================================================
+
+builder.Services
+    .AddControllers()
+    .AddJsonOptions(options =>
+    {
+        options.JsonSerializerOptions.Converters.Add(
+            new System.Text.Json.Serialization.JsonStringEnumConverter()
+        );
+    });
+
+
+// ============================================================
+// SWAGGER
+// ============================================================
+
+builder.Services.AddEndpointsApiExplorer();
+
+builder.Services.AddSwaggerGen(c =>
+{
+    c.SwaggerDoc("v1", new OpenApiInfo
+    {
+        Title = "FHSMS API",
+        Version = "v1",
+        Description = "FHSMS Backend API"
+    });
+>>>>>>> 3782106b97382fbb9bf1c87d2faf6feacefc8f31
 
     c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
     {
@@ -61,18 +138,31 @@ builder.Services.AddSwaggerGen(c =>
         In = ParameterLocation.Header,
         Description = "Enter a valid JWT token."
     });
+<<<<<<< HEAD
+=======
+
+>>>>>>> 3782106b97382fbb9bf1c87d2faf6feacefc8f31
     c.AddSecurityRequirement(new OpenApiSecurityRequirement
     {
         {
             new OpenApiSecurityScheme
             {
+<<<<<<< HEAD
                 Reference = new OpenApiReference { Type = ReferenceType.SecurityScheme, Id = "Bearer" }
+=======
+                Reference = new OpenApiReference
+                {
+                    Type = ReferenceType.SecurityScheme,
+                    Id = "Bearer"
+                }
+>>>>>>> 3782106b97382fbb9bf1c87d2faf6feacefc8f31
             },
             Array.Empty<string>()
         }
     });
 });
 
+<<<<<<< HEAD
 builder.Services.AddCors(options =>
 {
     // A comma-separated ALLOWED_ORIGINS env var (or Cors:AllowedOrigins in
@@ -100,28 +190,143 @@ builder.Services.AddInfrastructure(builder.Configuration);
 var app = builder.Build();
 
 // --- Global exception handling --------------------------------------------
+=======
+
+// ============================================================
+// CORS
+// ============================================================
+
+builder.Services.AddCors(options =>
+{
+    var allowedOrigins =
+        Environment.GetEnvironmentVariable("ALLOWED_ORIGINS")
+        ?? builder.Configuration["Cors:AllowedOrigins"];
+
+    var origins = allowedOrigins?
+        .Split(
+            ',',
+            StringSplitOptions.RemoveEmptyEntries |
+            StringSplitOptions.TrimEntries
+        );
+
+    options.AddPolicy("Default", policy =>
+    {
+        if (origins is { Length: > 0 })
+        {
+            policy
+                .WithOrigins(origins)
+                .AllowAnyHeader()
+                .AllowAnyMethod();
+        }
+        else
+        {
+            // Temporary fallback while the deployment is being configured.
+            policy
+                .AllowAnyOrigin()
+                .AllowAnyHeader()
+                .AllowAnyMethod();
+        }
+    });
+});
+
+
+// ============================================================
+// APPLICATION / INFRASTRUCTURE
+// ============================================================
+
+builder.Services.AddApplication();
+builder.Services.AddInfrastructure(builder.Configuration);
+
+
+// ============================================================
+// BUILD APPLICATION
+// ============================================================
+
+var app = builder.Build();
+
+
+// ============================================================
+// GLOBAL EXCEPTION HANDLER
+// ============================================================
+
+>>>>>>> 3782106b97382fbb9bf1c87d2faf6feacefc8f31
 app.UseExceptionHandler(errorApp =>
 {
     errorApp.Run(async context =>
     {
+<<<<<<< HEAD
         var feature = context.Features.Get<IExceptionHandlerFeature>();
+=======
+        var feature =
+            context.Features.Get<IExceptionHandlerFeature>();
+
+>>>>>>> 3782106b97382fbb9bf1c87d2faf6feacefc8f31
         var exception = feature?.Error;
 
         var (statusCode, payload) = exception switch
         {
+<<<<<<< HEAD
             ValidationException validationEx => (StatusCodes.Status400BadRequest, (object)validationEx.Errors),
             NotFoundException notFoundEx => (StatusCodes.Status404NotFound, (object)new { message = notFoundEx.Message }),
             UnauthorizedAccessException authEx => (StatusCodes.Status401Unauthorized, (object)new { message = authEx.Message }),
             FHSMS.Domain.Exceptions.DomainException domainEx => (StatusCodes.Status400BadRequest, (object)new { message = domainEx.Message }),
             _ => (StatusCodes.Status500InternalServerError, (object)new { message = "An unexpected error occurred." })
+=======
+            ValidationException validationEx =>
+                (
+                    StatusCodes.Status400BadRequest,
+                    (object)validationEx.Errors
+                ),
+
+            NotFoundException notFoundEx =>
+                (
+                    StatusCodes.Status404NotFound,
+                    (object)new
+                    {
+                        message = notFoundEx.Message
+                    }
+                ),
+
+            UnauthorizedAccessException authEx =>
+                (
+                    StatusCodes.Status401Unauthorized,
+                    (object)new
+                    {
+                        message = authEx.Message
+                    }
+                ),
+
+            FHSMS.Domain.Exceptions.DomainException domainEx =>
+                (
+                    StatusCodes.Status400BadRequest,
+                    (object)new
+                    {
+                        message = domainEx.Message
+                    }
+                ),
+
+            _ =>
+                (
+                    StatusCodes.Status500InternalServerError,
+                    (object)new
+                    {
+                        message = "An unexpected error occurred."
+                    }
+                )
+>>>>>>> 3782106b97382fbb9bf1c87d2faf6feacefc8f31
         };
 
         context.Response.StatusCode = statusCode;
         context.Response.ContentType = "application/json";
+<<<<<<< HEAD
+=======
+
+>>>>>>> 3782106b97382fbb9bf1c87d2faf6feacefc8f31
         await context.Response.WriteAsJsonAsync(payload);
     });
 });
 
+<<<<<<< HEAD
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
@@ -136,10 +341,45 @@ app.UseAuthorization();
 // single UPDATE (ExecuteUpdateAsync - no entity load/tracking overhead, safe
 // to run on every request). This is what "online" actually means throughout
 // the app - recent activity, not just "logged in at some point today".
+=======
+
+// ============================================================
+// SWAGGER
+// ============================================================
+// Enabled in production so we can test the deployed API.
+// ============================================================
+
+app.UseSwagger();
+
+app.UseSwaggerUI();
+
+
+// ============================================================
+// CORS
+// ============================================================
+
+app.UseCors("Default");
+
+
+// ============================================================
+// AUTHENTICATION / AUTHORIZATION
+// ============================================================
+
+app.UseAuthentication();
+
+app.UseAuthorization();
+
+
+// ============================================================
+// USER PRESENCE TRACKING
+// ============================================================
+
+>>>>>>> 3782106b97382fbb9bf1c87d2faf6feacefc8f31
 app.Use(async (context, next) =>
 {
     if (context.User.Identity?.IsAuthenticated == true)
     {
+<<<<<<< HEAD
         var userIdClaim = context.User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
         if (Guid.TryParse(userIdClaim, out var userId))
         {
@@ -194,8 +434,195 @@ static string ConvertPostgresUrlToNpgsqlConnectionString(string url)
     if (string.IsNullOrEmpty(sslMode) || sslMode.Equals("require", StringComparison.OrdinalIgnoreCase))
     {
         npgsqlBuilder.SslMode = Npgsql.SslMode.Require;
+=======
+        var userIdClaim =
+            context.User.FindFirst(
+                System.Security.Claims.ClaimTypes.NameIdentifier
+            )?.Value;
+
+        if (Guid.TryParse(userIdClaim, out var userId))
+        {
+            try
+            {
+                using var scope =
+                    context.RequestServices.CreateScope();
+
+                var db =
+                    scope.ServiceProvider
+                        .GetRequiredService<ApplicationDbContext>();
+
+                await db.Users
+                    .Where(u => u.Id == userId)
+                    .ExecuteUpdateAsync(
+                        setters => setters.SetProperty(
+                            u => u.LastSeenAt,
+                            DateTime.UtcNow
+                        )
+                    );
+            }
+            catch (Exception ex)
+            {
+                // Do not break an otherwise valid API request
+                // just because presence tracking failed.
+                Console.WriteLine(
+                    $"Presence tracking failed: {ex.Message}"
+                );
+            }
+        }
+    }
+
+    await next();
+});
+
+
+// ============================================================
+// API CONTROLLERS
+// ============================================================
+
+app.MapControllers();
+
+
+// ============================================================
+// HEALTH CHECK
+// ============================================================
+// This endpoint does NOT require the database.
+// It lets us confirm that the container itself is alive.
+// ============================================================
+
+app.MapGet("/health", () =>
+{
+    return Results.Ok(new
+    {
+        status = "healthy",
+        service = "FHSMS API",
+        environment =
+            Environment.GetEnvironmentVariable(
+                "ASPNETCORE_ENVIRONMENT"
+            ) ?? "Production",
+        port = port
+    });
+});
+
+
+// ============================================================
+// ROOT ENDPOINT
+// ============================================================
+
+app.MapGet("/", () =>
+{
+    return Results.Ok(new
+    {
+        service = "FHSMS API",
+        status = "running",
+        health = "/health",
+        swagger = "/swagger"
+    });
+});
+
+
+// ============================================================
+// DATABASE SEEDING
+// ============================================================
+//
+// IMPORTANT:
+// We are intentionally NOT running the database seeder during
+// startup right now.
+//
+// First we need to prove that AletCloud can start the API.
+// Once /health works, we can safely configure migrations and
+// database seeding.
+//
+// ============================================================
+
+
+// ============================================================
+// START APPLICATION
+// ============================================================
+
+Console.WriteLine("==========================================");
+Console.WriteLine("FHSMS API starting...");
+Console.WriteLine($"Environment: {app.Environment.EnvironmentName}");
+Console.WriteLine($"Port: {port}");
+Console.WriteLine($"Listening on: http://0.0.0.0:{port}");
+Console.WriteLine("==========================================");
+
+app.Run();
+
+
+// ============================================================
+// POSTGRES URL CONVERTER
+// ============================================================
+
+static string ConvertPostgresUrlToNpgsqlConnectionString(string url)
+{
+    var uri = new Uri(url);
+
+    var userInfo = uri.UserInfo.Split(':', 2);
+
+    if (userInfo.Length == 0 || string.IsNullOrWhiteSpace(userInfo[0]))
+    {
+        throw new InvalidOperationException(
+            "DATABASE_URL does not contain a PostgreSQL username."
+        );
+    }
+
+    var database = uri.AbsolutePath.TrimStart('/');
+
+    if (string.IsNullOrWhiteSpace(database))
+    {
+        throw new InvalidOperationException(
+            "DATABASE_URL does not contain a database name."
+        );
+    }
+
+    var query =
+        Microsoft.AspNetCore.WebUtilities.QueryHelpers
+            .ParseQuery(uri.Query);
+
+    var sslMode =
+        query.TryGetValue("sslmode", out var sslModeValues)
+            ? sslModeValues.ToString()
+            : null;
+
+    var npgsqlBuilder =
+        new NpgsqlConnectionStringBuilder
+        {
+            Host = uri.Host,
+
+            Port = uri.Port > 0
+                ? uri.Port
+                : 5432,
+
+            Username =
+                Uri.UnescapeDataString(userInfo[0]),
+
+            Password =
+                userInfo.Length > 1
+                    ? Uri.UnescapeDataString(userInfo[1])
+                    : "",
+
+            Database =
+                Uri.UnescapeDataString(database),
+
+            Pooling = true
+        };
+
+    if (
+        string.IsNullOrEmpty(sslMode) ||
+        sslMode.Equals(
+            "require",
+            StringComparison.OrdinalIgnoreCase
+        )
+    )
+    {
+        npgsqlBuilder.SslMode = SslMode.Require;
+>>>>>>> 3782106b97382fbb9bf1c87d2faf6feacefc8f31
         npgsqlBuilder.TrustServerCertificate = true;
     }
 
     return npgsqlBuilder.ConnectionString;
+<<<<<<< HEAD
 }
+=======
+}
+>>>>>>> 3782106b97382fbb9bf1c87d2faf6feacefc8f31

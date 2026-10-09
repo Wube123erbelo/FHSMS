@@ -1,8 +1,14 @@
 {
   "version": 2,
+<<<<<<< HEAD
   "dgSpecHash": "Qj8yW1Y8Xv4=",
   "success": true,
   "projectFilePath": "C:\\Users\\HP\\3D Objects\\FHSMS\\src\\FHSMS.API\\FHSMS.API.csproj",
+=======
+  "dgSpecHash": "grRGwG5rSZg=",
+  "success": true,
+  "projectFilePath": "C:\\Users\\HP\\3D Objects\\FHSMS\\src\\fhsms.api\\FHSMS.API.csproj",
+>>>>>>> 3782106b97382fbb9bf1c87d2faf6feacefc8f31
   "expectedPackageFiles": [
     "C:\\Users\\HP\\.nuget\\packages\\bcrypt.net-next\\4.0.3\\bcrypt.net-next.4.0.3.nupkg.sha512",
     "C:\\Users\\HP\\.nuget\\packages\\fluentvalidation\\11.9.2\\fluentvalidation.11.9.2.nupkg.sha512",
@@ -48,9 +54,15 @@
       "code": "NU1603",
       "level": "Warning",
       "message": "FHSMS.Infrastructure depends on Microsoft.Extensions.Configuration.Abstractions (>= 8.0.10) but Microsoft.Extensions.Configuration.Abstractions 8.0.10 was not found. Microsoft.Extensions.Configuration.Abstractions 9.0.0 was resolved instead.",
+<<<<<<< HEAD
       "projectPath": "C:\\Users\\HP\\3D Objects\\FHSMS\\src\\FHSMS.API\\FHSMS.API.csproj",
       "warningLevel": 1,
       "filePath": "C:\\Users\\HP\\3D Objects\\FHSMS\\src\\FHSMS.API\\FHSMS.API.csproj",
+=======
+      "projectPath": "C:\\Users\\HP\\3D Objects\\FHSMS\\src\\fhsms.api\\FHSMS.API.csproj",
+      "warningLevel": 1,
+      "filePath": "C:\\Users\\HP\\3D Objects\\FHSMS\\src\\fhsms.api\\FHSMS.API.csproj",
+>>>>>>> 3782106b97382fbb9bf1c87d2faf6feacefc8f31
       "libraryId": "Microsoft.Extensions.Configuration.Abstractions",
       "targetGraphs": [
         "net8.0"
@@ -60,9 +72,15 @@
       "code": "NU1603",
       "level": "Warning",
       "message": "FHSMS.Application depends on Microsoft.Extensions.DependencyInjection.Abstractions (>= 8.0.10) but Microsoft.Extensions.DependencyInjection.Abstractions 8.0.10 was not found. Microsoft.Extensions.DependencyInjection.Abstractions 9.0.0 was resolved instead.",
+<<<<<<< HEAD
       "projectPath": "C:\\Users\\HP\\3D Objects\\FHSMS\\src\\FHSMS.API\\FHSMS.API.csproj",
       "warningLevel": 1,
       "filePath": "C:\\Users\\HP\\3D Objects\\FHSMS\\src\\FHSMS.API\\FHSMS.API.csproj",
+=======
+      "projectPath": "C:\\Users\\HP\\3D Objects\\FHSMS\\src\\fhsms.api\\FHSMS.API.csproj",
+      "warningLevel": 1,
+      "filePath": "C:\\Users\\HP\\3D Objects\\FHSMS\\src\\fhsms.api\\FHSMS.API.csproj",
+>>>>>>> 3782106b97382fbb9bf1c87d2faf6feacefc8f31
       "libraryId": "Microsoft.Extensions.DependencyInjection.Abstractions",
       "targetGraphs": [
         "net8.0"

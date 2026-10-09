@@ -6,6 +6,10 @@ C:\Users\HP\3D Objects\FHSMS\src\FHSMS.Domain\obj\Debug\net8.0\FHSMS.Domain.Gene
 C:\Users\HP\3D Objects\FHSMS\src\FHSMS.Domain\obj\Debug\net8.0\FHSMS.Domain.AssemblyInfoInputs.cache
 C:\Users\HP\3D Objects\FHSMS\src\FHSMS.Domain\obj\Debug\net8.0\FHSMS.Domain.AssemblyInfo.cs
 C:\Users\HP\3D Objects\FHSMS\src\FHSMS.Domain\obj\Debug\net8.0\FHSMS.Domain.csproj.CoreCompileInputs.cache
+<<<<<<< HEAD
+=======
+C:\Users\HP\3D Objects\FHSMS\src\FHSMS.Domain\obj\Debug\net8.0\FHSMS.Domain.sourcelink.json
+>>>>>>> 3782106b97382fbb9bf1c87d2faf6feacefc8f31
 C:\Users\HP\3D Objects\FHSMS\src\FHSMS.Domain\obj\Debug\net8.0\FHSMS.Domain.dll
 C:\Users\HP\3D Objects\FHSMS\src\FHSMS.Domain\obj\Debug\net8.0\refint\FHSMS.Domain.dll
 C:\Users\HP\3D Objects\FHSMS\src\FHSMS.Domain\obj\Debug\net8.0\FHSMS.Domain.pdb

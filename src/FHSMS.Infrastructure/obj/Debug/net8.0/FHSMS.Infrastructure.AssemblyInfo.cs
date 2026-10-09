@@ -13,7 +13,11 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("FHSMS.Infrastructure")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
+<<<<<<< HEAD
 [assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0")]
+=======
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+4e4cc5305df451fa02aa6292b1aa7883878b0075")]
+>>>>>>> 3782106b97382fbb9bf1c87d2faf6feacefc8f31
 [assembly: System.Reflection.AssemblyProductAttribute("FHSMS.Infrastructure")]
 [assembly: System.Reflection.AssemblyTitleAttribute("FHSMS.Infrastructure")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

@@ -1,6 +1,7 @@
 {
   "format": 1,
   "restore": {
+<<<<<<< HEAD
     "C:\\Users\\HP\\3D Objects\\FHSMS\\src\\FHSMS.API\\FHSMS.API.csproj": {}
   },
   "projects": {
@@ -12,6 +13,19 @@
         "projectPath": "C:\\Users\\HP\\3D Objects\\FHSMS\\src\\FHSMS.API\\FHSMS.API.csproj",
         "packagesPath": "C:\\Users\\HP\\.nuget\\packages\\",
         "outputPath": "C:\\Users\\HP\\3D Objects\\FHSMS\\src\\FHSMS.API\\obj\\",
+=======
+    "C:\\Users\\HP\\3D Objects\\FHSMS\\src\\fhsms.api\\FHSMS.API.csproj": {}
+  },
+  "projects": {
+    "C:\\Users\\HP\\3D Objects\\FHSMS\\src\\fhsms.api\\FHSMS.API.csproj": {
+      "version": "1.0.0",
+      "restore": {
+        "projectUniqueName": "C:\\Users\\HP\\3D Objects\\FHSMS\\src\\fhsms.api\\FHSMS.API.csproj",
+        "projectName": "FHSMS.API",
+        "projectPath": "C:\\Users\\HP\\3D Objects\\FHSMS\\src\\fhsms.api\\FHSMS.API.csproj",
+        "packagesPath": "C:\\Users\\HP\\.nuget\\packages\\",
+        "outputPath": "C:\\Users\\HP\\3D Objects\\FHSMS\\src\\fhsms.api\\obj\\",
+>>>>>>> 3782106b97382fbb9bf1c87d2faf6feacefc8f31
         "projectStyle": "PackageReference",
         "configFilePaths": [
           "C:\\Users\\HP\\AppData\\Roaming\\NuGet\\NuGet.Config"

@@ -1,5 +1,6 @@
 # syntax=docker/dockerfile:1
 
+<<<<<<< HEAD
 # --- Build stage -------------------------------------------------------
 # Builds and publishes FHSMS.API and everything it depends on (Domain,
 # Application, Infrastructure). Only the .csproj files are copied before
@@ -7,6 +8,10 @@
 # entirely on rebuilds where only .cs files changed - the biggest lever for
 # fast iterative builds here.
 FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
+=======
+FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
+
+>>>>>>> 3782106b97382fbb9bf1c87d2faf6feacefc8f31
 WORKDIR /src
 
 COPY src/FHSMS.Domain/FHSMS.Domain.csproj src/FHSMS.Domain/
@@ -17,6 +22,7 @@ COPY src/FHSMS.API/FHSMS.API.csproj src/FHSMS.API/
 RUN dotnet restore src/FHSMS.API/FHSMS.API.csproj
 
 COPY src/ src/
+<<<<<<< HEAD
 RUN dotnet publish src/FHSMS.API/FHSMS.API.csproj -c Release -o /app/publish --no-restore
 
 # --- Runtime stage -------------------------------------------------------
@@ -35,3 +41,22 @@ COPY --from=build /app/publish .
 EXPOSE 8080
 
 ENTRYPOINT ["dotnet", "FHSMS.API.dll"]
+=======
+
+RUN dotnet publish src/FHSMS.API/FHSMS.API.csproj \
+    -c Release \
+    -o /app/publish \
+    --no-restore
+
+FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS runtime
+
+WORKDIR /app
+
+COPY --from=build /app/publish .
+
+ENV ASPNETCORE_URLS=http://0.0.0.0:8080
+
+EXPOSE 8080
+
+ENTRYPOINT ["dotnet", "FHSMS.API.dll"]
+>>>>>>> 3782106b97382fbb9bf1c87d2faf6feacefc8f31
