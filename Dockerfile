@@ -1,62 +1,41 @@
-# syntax=docker/dockerfile:1
+syntax=docker/dockerfile:1
+--- Build stage ---
 
-<<<<<<< HEAD
-# --- Build stage -------------------------------------------------------
-# Builds and publishes FHSMS.API and everything it depends on (Domain,
-# Application, Infrastructure). Only the .csproj files are copied before
-# `dotnet restore` so Docker's layer cache can skip the restore step
-# entirely on rebuilds where only .cs files changed - the biggest lever for
-# fast iterative builds here.
-FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
-=======
-FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
+FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build WORKDIR /src
 
->>>>>>> 3782106b97382fbb9bf1c87d2faf6feacefc8f31
-WORKDIR /src
+Copy project files first for better Docker layer caching
 
-COPY src/FHSMS.Domain/FHSMS.Domain.csproj src/FHSMS.Domain/
-COPY src/FHSMS.Application/FHSMS.Application.csproj src/FHSMS.Application/
-COPY src/FHSMS.Infrastructure/FHSMS.Infrastructure.csproj src/FHSMS.Infrastructure/
-COPY src/FHSMS.API/FHSMS.API.csproj src/FHSMS.API/
+COPY src/FHSMS.Domain/FHSMS.Domain.csproj src/FHSMS.Domain/ COPY src/FHSMS.Application/FHSMS.Application.csproj src/FHSMS.Application/ COPY src/FHSMS.Infrastructure/FHSMS.Infrastructure.csproj src/FHSMS.Infrastructure/ COPY src/FHSMS.API/FHSMS.API.csproj src/FHSMS.API/
+
+Restore dependencies
 
 RUN dotnet restore src/FHSMS.API/FHSMS.API.csproj
 
+Copy source code
+
 COPY src/ src/
-<<<<<<< HEAD
-RUN dotnet publish src/FHSMS.API/FHSMS.API.csproj -c Release -o /app/publish --no-restore
 
-# --- Runtime stage -------------------------------------------------------
-# The much smaller ASP.NET runtime image (no SDK/compiler) - this is the
-# image Render actually deploys and runs.
-FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS runtime
-WORKDIR /app
+Publish the API
 
-# Runs as the image's built-in non-root user rather than root.
-USER app
+RUN dotnet publish src/FHSMS.API/FHSMS.API.csproj
+-c Release
+-o /app/publish
+--no-restore
 
-COPY --from=build /app/publish .
+--- Runtime stage ---
 
-# Informational only - Render assigns the real port via the PORT env var,
-# which Program.cs reads and binds Kestrel to at startup.
-EXPOSE 8080
+FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS runtime WORKDIR /app
 
-ENTRYPOINT ["dotnet", "FHSMS.API.dll"]
-=======
+Configure the API to listen on the deployment port
 
-RUN dotnet publish src/FHSMS.API/FHSMS.API.csproj \
-    -c Release \
-    -o /app/publish \
-    --no-restore
-
-FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS runtime
-
-WORKDIR /app
-
-COPY --from=build /app/publish .
-
-ENV ASPNETCORE_URLS=http://0.0.0.0:8080
+ENV ASPNETCOREURLS=http://0.0.0.0:8080 ENV ASPNETCOREHTTP_PORTS=8080
 
 EXPOSE 8080
 
+Copy published application
+
+COPY --from=build /app/publish .
+
+Start the API
+
 ENTRYPOINT ["dotnet", "FHSMS.API.dll"]
->>>>>>> 3782106b97382fbb9bf1c87d2faf6feacefc8f31
